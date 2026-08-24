@@ -1,0 +1,7 @@
+project_id = "wlaivxjrlkklckeihqjm"
+
+[functions.bootstrap-admin]
+verify_jwt = false
+
+[functions.gdnyasa-chat]
+verify_jwt = false
