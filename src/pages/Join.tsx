@@ -97,6 +97,12 @@ export default function Join() {
       setSubmitted(true);
       setFormData(initialState);
     } catch (err: any) {
+      // Log detailed error for debugging
+      if (import.meta.env.DEV) {
+        console.error("Submission error:", err);
+      }
+
+      // Show user-friendly error message
       toast({
         title: "Submission Failed",
         description: err?.message || "Please try again later.",

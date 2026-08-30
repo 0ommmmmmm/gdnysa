@@ -48,7 +48,7 @@ export default function Contact() {
 
     try {
       await submitContactMessage(formData);
-      
+
       toast({
         title: "Message Sent!",
         description: "We'll get back to you as soon as possible. Check your email for confirmation.",
@@ -61,6 +61,12 @@ export default function Contact() {
         message: "",
       });
     } catch (error: any) {
+      // Log detailed error for debugging
+      if (import.meta.env.DEV) {
+        console.error("Contact form error:", error);
+      }
+
+      // Show user-friendly error message
       toast({
         title: "Failed to send message",
         description: error.message || "Please try again later.",
