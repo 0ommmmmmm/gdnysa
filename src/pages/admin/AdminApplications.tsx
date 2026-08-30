@@ -9,7 +9,12 @@ import { ConfirmDeleteModal } from "@/components/admin/ConfirmDeleteModal";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { LoadingState } from "@/components/admin/LoadingState";
 import { downloadApplicationPdf } from "@/lib/applicationPdf";
-import { fetchApplications } from "@/services/applications";
+import {
+  fetchApplications,
+  updateApplicationStatus,
+  updateApplication,
+  deleteApplication,
+} from "@/services/applications";
 import {
   emptyApplicationFilters,
   type ApplicationFilterState,
@@ -24,13 +29,14 @@ export default function AdminApplications() {
   const [selected, setSelected] = useState<MentorshipApplication | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<MentorshipApplication | null>(null);
 
   useEffect(() => {
     let active = true;
-    // TODO(Windsurf): swap for a Supabase query + realtime subscription.
     fetchApplications()
       .then((rows) => active && setApplications(rows))
+      .catch((err: any) => active && toast.error("Failed to load applications", { description: err.message }))
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
@@ -42,29 +48,64 @@ export default function AdminApplications() {
     return applications.filter((a) => {
       if (filters.status !== "all" && a.status !== filters.status) return false;
       if (filters.target_exam !== "all" && a.target_exam !== filters.target_exam) return false;
-      if (
-        filters.preferred_program !== "all" &&
-        a.preferred_program !== filters.preferred_program
-      )
+      if (filters.preferred_program !== "all" && a.preferred_program !== filters.preferred_program)
         return false;
       if (!q) return true;
       return [a.full_name, a.email, a.phone].some((v) => v.toLowerCase().includes(q));
     });
   }, [applications, filters]);
 
-  const notConnected = () =>
-    toast.info("Not connected yet", {
-      description: "This action will work once the backend is connected.",
-    });
+  const applyLocalUpdate = (id: string, changes: Partial<MentorshipApplication>) => {
+    setApplications((prev) => prev.map((a) => (a.id === id ? { ...a, ...changes } : a)));
+    setSelected((prev) => (prev && prev.id === id ? { ...prev, ...changes } : prev));
+  };
 
-  const handleStatusChange = (_a: MentorshipApplication, _status: ApplicationStatus) =>
-    notConnected();
+  const handleStatusChange = async (a: MentorshipApplication, status: ApplicationStatus) => {
+    try {
+      await updateApplicationStatus(a.id, status);
+      applyLocalUpdate(a.id, { status });
+      toast.success(`Marked as ${status}`);
+    } catch (err: any) {
+      toast.error("Failed to update status", { description: err.message });
+    }
+  };
+
+  const handleSave = async (changes: Partial<MentorshipApplication>) => {
+    if (!selected) return;
+    setSaving(true);
+    try {
+      await updateApplication(selected.id, changes);
+      applyLocalUpdate(selected.id, changes);
+      toast.success("Application updated");
+      setEditing(false);
+    } catch (err: any) {
+      toast.error("Failed to save changes", { description: err.message });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDialogStatusChange = async (status: ApplicationStatus) => {
+    if (!selected) return;
+    await handleStatusChange(selected, status);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    const target = deleteTarget;
+    setDeleteTarget(null);
+    try {
+      await deleteApplication(target.id);
+      setApplications((prev) => prev.filter((a) => a.id !== target.id));
+      if (selected?.id === target.id) setDetailsOpen(false);
+      toast.success("Application deleted");
+    } catch (err: any) {
+      toast.error("Failed to delete application", { description: err.message });
+    }
+  };
 
   return (
-    <AdminLayout
-      title="Applications"
-      description="All Join Now form submissions"
-    >
+    <AdminLayout title="Applications" description="All Join Now form submissions">
       <div className="space-y-5">
         <ApplicationFilters value={filters} onChange={setFilters} />
 
@@ -74,7 +115,7 @@ export default function AdminApplications() {
           <EmptyState
             icon={<FileText className="h-9 w-9" />}
             title="No applications yet"
-            description="Once the backend is connected, every Join Now submission will be listed here."
+            description="Every Join Now submission will be listed here."
           />
         ) : (
           <ApplicationTable
@@ -100,9 +141,10 @@ export default function AdminApplications() {
         application={selected}
         open={detailsOpen}
         editing={editing}
+        saving={saving}
         onOpenChange={setDetailsOpen}
-        onSave={notConnected}
-        onStatusChange={notConnected}
+        onSave={handleSave}
+        onStatusChange={handleDialogStatusChange}
         onDelete={() => selected && setDeleteTarget(selected)}
         onDownloadPdf={() => selected && downloadApplicationPdf(selected)}
       />
@@ -112,10 +154,7 @@ export default function AdminApplications() {
         onOpenChange={(open) => !open && setDeleteTarget(null)}
         title="Delete this application?"
         description="The application record will be permanently removed."
-        onConfirm={() => {
-          setDeleteTarget(null);
-          notConnected();
-        }}
+        onConfirm={handleDelete}
       />
     </AdminLayout>
   );

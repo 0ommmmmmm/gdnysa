@@ -20,7 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { fetchMessages } from "@/services/messages";
+import { fetchMessages, setMessageRead } from "@/services/messages";
 import type { ContactMessage } from "@/types/admin";
 
 export default function AdminMessages() {
@@ -32,9 +32,9 @@ export default function AdminMessages() {
 
   useEffect(() => {
     let alive = true;
-    // TODO(Windsurf): swap for a Supabase query + realtime subscription.
     fetchMessages()
       .then((rows) => alive && setMessages(rows))
+      .catch((err: any) => alive && toast.error("Failed to load messages", { description: err.message }))
       .finally(() => alive && setLoading(false));
     return () => {
       alive = false;
@@ -47,16 +47,25 @@ export default function AdminMessages() {
       if (readFilter === "read" && !m.is_read) return false;
       if (readFilter === "unread" && m.is_read) return false;
       if (!q) return true;
-      return [m.name, m.email, m.subject, m.message].some((v) =>
-        v.toLowerCase().includes(q)
-      );
+      return [m.name, m.email, m.subject, m.message].some((v) => v.toLowerCase().includes(q));
     });
   }, [messages, search, readFilter]);
 
-  const notConnected = () =>
-    toast.info("Not connected yet", {
-      description: "This action will work once the backend is connected.",
-    });
+  const handleToggleRead = async (m: ContactMessage) => {
+    const nextRead = !m.is_read;
+    try {
+      await setMessageRead(m.id, nextRead);
+      setMessages((prev) => prev.map((row) => (row.id === m.id ? { ...row, is_read: nextRead } : row)));
+      setActive((prev) => (prev && prev.id === m.id ? { ...prev, is_read: nextRead } : prev));
+    } catch (err: any) {
+      toast.error("Failed to update message", { description: err.message });
+    }
+  };
+
+  const handleView = (m: ContactMessage) => {
+    setActive(m);
+    if (!m.is_read) handleToggleRead(m);
+  };
 
   return (
     <AdminLayout title="Contact Messages" description="Messages from the contact form">
@@ -90,14 +99,10 @@ export default function AdminMessages() {
           <EmptyState
             icon={<Mail className="h-9 w-9" />}
             title="No messages yet"
-            description="Contact form submissions will appear here once the backend is connected."
+            description="Contact form submissions will appear here."
           />
         ) : (
-          <ContactMessagesTable
-            messages={visible}
-            onView={setActive}
-            onToggleRead={notConnected}
-          />
+          <ContactMessagesTable messages={visible} onView={handleView} onToggleRead={handleToggleRead} />
         )}
       </div>
 
