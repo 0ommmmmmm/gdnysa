@@ -27,9 +27,11 @@ export function Footer() {
             {/* Brand */}
             <div className="space-y-4">
               <Link to="/" className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-                  <Mountain className="w-6 h-6 text-primary-foreground" />
-                </div>
+                <img 
+                  src="/logo.jpg" 
+                  alt="G-Dnyasa Logo" 
+                  className="w-10 h-10 rounded-xl object-cover"
+                />
                 <span className="text-xl font-bold text-foreground font-serif">
                   G-Dnyasa
                 </span>
@@ -80,11 +82,11 @@ export function Footer() {
               <ul className="space-y-3">
                 <li className="flex items-center gap-2 text-muted-foreground text-sm">
                   <Mail className="w-4 h-4 text-primary" />
-                  <span>contact@gdnyasa.in</span>
+                  <span>gdnyasa@gmail.com</span>
                 </li>
                 <li className="flex items-center gap-2 text-muted-foreground text-sm">
                   <Phone className="w-4 h-4 text-primary" />
-                  <span>+91 XXXXX XXXXX</span>
+                  <span>+91 Confidential</span>
                 </li>
                 <li className="flex items-start gap-2 text-muted-foreground text-sm">
                   <MapPin className="w-4 h-4 text-primary mt-0.5" />

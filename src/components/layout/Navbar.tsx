@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Mountain } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
@@ -24,9 +24,11 @@ export function Navbar() {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2 group">
-              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-                <Mountain className="w-6 h-6 text-primary-foreground" />
-              </div>
+              <img 
+                src="/logo.jpg" 
+                alt="G-Dnyasa Logo" 
+                className="w-10 h-10 rounded-xl object-cover"
+              />
               <span className="text-xl font-bold text-foreground font-serif">
                 G-Dnyasa
               </span>

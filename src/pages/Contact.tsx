@@ -11,13 +11,13 @@ const contactInfo = [
   {
     icon: Mail,
     label: "Email",
-    value: "contact@gdnyasa.in",
-    href: "mailto:contact@gdnyasa.in",
+    value: "gdnyasa@gmail.com",
+    href: "mailto:gdnyasa@gmail.com",
   },
   {
     icon: Phone,
     label: "Phone",
-    value: "+91 XXXXX XXXXX",
+    value: "+91 Confidential",
     href: "tel:+91XXXXXXXXXX",
   },
   {

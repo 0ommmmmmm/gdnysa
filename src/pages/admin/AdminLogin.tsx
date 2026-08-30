@@ -30,7 +30,10 @@ export default function AdminLogin() {
     try {
       await adminLogin({ identifier: email, password });
       navigate("/admin/dashboard", { replace: true });
-    } catch {
+    } catch (err: any) {
+      if (import.meta.env.DEV) {
+        console.error("Login error:", err);
+      }
       setError("Invalid username or password.");
     } finally {
       setLoading(false);
@@ -68,7 +71,7 @@ export default function AdminLogin() {
                 autoComplete="username"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@gdnyasa.com"
+                placeholder="admin.gdnyasa@gdnyasa.app"
               />
             </div>
 

@@ -4,6 +4,14 @@ import type { Database } from './types';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
+// Debug: Log configuration in development
+if (import.meta.env.DEV) {
+  console.log('Supabase Configuration:');
+  console.log('URL:', SUPABASE_URL);
+  console.log('Project ID:', import.meta.env.VITE_SUPABASE_PROJECT_ID);
+  console.log('Key starts with:', SUPABASE_PUBLISHABLE_KEY?.substring(0, 20));
+}
+
 // Validate environment variables
 if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
   throw new Error(

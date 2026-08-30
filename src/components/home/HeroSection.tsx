@@ -92,9 +92,9 @@ export function HeroSection() {
           <ScrollReveal delay={0.4}>
             <div className="grid grid-cols-3 gap-6 mt-12">
               {[
-                { value: "500+", label: "Students Mentored" },
-                { value: "95%", label: "Success Rate" },
-                { value: "5+", label: "Years Experience" },
+                { value: "100+", label: "Students Mentored" },
+                { value: "85%", label: "Success Rate" },
+                { value: "2+", label: "Years Experience" },
               ].map((stat) => (
                 <div key={stat.label} className="text-center">
                   <div className="text-2xl md:text-3xl font-bold text-primary">

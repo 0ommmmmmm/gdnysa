@@ -11,6 +11,12 @@ import { ScrollReveal } from "@/components/animations/ScrollReveal";
 import { ParallaxBackground } from "@/components/animations/ParallaxBackground";
 import mineralsPattern from "@/assets/minerals-pattern.jpg";
 
+const qualifications = [
+  "Qualified geology mentor with strong academic background",
+  "Expertise in Applied Geology and related fields",
+  "Successfully cleared competitive exams like GATE and CSIR-NET",
+  "Years of experience in mentoring geology aspirants",
+];
 
 const philosophyPoints = [
   {
@@ -76,7 +82,7 @@ export default function Mentor() {
                 {/* Content */}
                 <div className="md:col-span-3">
                   <h2 className="text-2xl md:text-3xl font-bold text-foreground font-serif mb-6">
-                    Mentor Introduction
+                    Ms. Apoorva Pimprikar
                   </h2>
                   <p className="text-muted-foreground mb-6 leading-relaxed">
                     With a passion for geology and a track record of success in competitive exams, 

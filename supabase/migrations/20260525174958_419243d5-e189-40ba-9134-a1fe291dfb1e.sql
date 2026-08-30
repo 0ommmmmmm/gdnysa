@@ -112,6 +112,7 @@ GRANT UPDATE ON public.contact_submissions TO authenticated;
 GRANT UPDATE ON public.mentorship_registrations TO authenticated;
 
 -- Lock down SECURITY DEFINER
-REVOKE EXECUTE ON FUNCTION public.has_role(uuid, public.app_role) FROM anon, authenticated, public;
+REVOKE EXECUTE ON FUNCTION public.has_role(uuid, public.app_role) FROM anon, public;
+GRANT EXECUTE ON FUNCTION public.has_role(uuid, public.app_role) TO authenticated;
 REVOKE EXECUTE ON FUNCTION public.handle_new_user_role() FROM anon, authenticated, public;
 REVOKE EXECUTE ON FUNCTION public.enforce_single_admin() FROM anon, authenticated, public;
