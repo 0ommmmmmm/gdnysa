@@ -1,11 +1,8 @@
 /**
  * Frontend service layer for mentorship applications.
- *
- * NOTE: No backend is connected yet. Every function below is a clearly marked
- * placeholder. Windsurf should replace the bodies with Supabase queries while
- * keeping these signatures, so the UI needs no changes.
  */
 
+import { supabase } from "@/integrations/supabase/client";
 import type {
   ApplicationStatus,
   DashboardStats,
@@ -18,69 +15,163 @@ export interface SubmitResult {
   message?: string;
 }
 
-const NOT_CONNECTED =
-  "Backend is not connected yet. Wire this call up to Supabase.";
-
 /**
  * Public "Join Now" form submission.
- *
- * TODO(Windsurf): replace with
- *   await supabase.from("mentorship_applications").insert(data)
  */
 export async function submitApplication(
   data: MentorshipApplicationFormData
 ): Promise<SubmitResult> {
-  // Simulated round-trip so the UI loading state behaves realistically.
-  await new Promise((resolve) => setTimeout(resolve, 600));
+  const { error } = await supabase.from("joining_form").insert({
+    full_name: data.full_name,
+    email: data.email,
+    phone: data.phone,
+    target_exam: data.target_exam,
+    preferred_program: data.preferred_program,
+    message: data.message || null,
+  });
 
-  if (import.meta.env.DEV) {
-    // eslint-disable-next-line no-console
-    console.info("[submitApplication] payload (not persisted):", data);
+  if (error) {
+    if (error.code === "23505") {
+      throw new Error(
+        "You've already submitted an application with this email and phone number."
+      );
+    }
+    throw new Error(error.message);
   }
 
   return { success: true };
 }
 
-/**
- * TODO(Windsurf): select from Supabase (with filters / pagination / realtime).
- * Returns an empty list so the UI renders its empty state.
- */
 export async function fetchApplications(): Promise<MentorshipApplication[]> {
-  return [];
+  const { data, error } = await supabase
+    .from("joining_form")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data.map((row) => ({
+    id: row.id,
+    full_name: row.full_name,
+    email: row.email,
+    phone: row.phone,
+    target_exam: row.target_exam,
+    preferred_program: row.preferred_program,
+    message: row.message || undefined,
+    status: row.status as ApplicationStatus,
+    internal_notes: row.internal_notes || undefined,
+    created_at: row.created_at,
+    updated_at: row.updated_at || undefined,
+  }));
 }
 
-/** TODO(Windsurf): select a single application by id. */
 export async function fetchApplication(
-  _id: string
+  id: string
 ): Promise<MentorshipApplication | null> {
-  return null;
+  const { data, error } = await supabase
+    .from("joining_form")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") {
+      return null;
+    }
+    throw new Error(error.message);
+  }
+
+  return {
+    id: data.id,
+    full_name: data.full_name,
+    email: data.email,
+    phone: data.phone,
+    target_exam: data.target_exam,
+    preferred_program: data.preferred_program,
+    message: data.message || undefined,
+    status: data.status as ApplicationStatus,
+    internal_notes: data.internal_notes || undefined,
+    created_at: data.created_at,
+    updated_at: data.updated_at || undefined,
+  };
 }
 
-/** TODO(Windsurf): update status column. */
 export async function updateApplicationStatus(
-  _id: string,
-  _status: ApplicationStatus
+  id: string,
+  status: ApplicationStatus
 ): Promise<void> {
-  throw new Error(NOT_CONNECTED);
+  const { error } = await supabase
+    .from("joining_form")
+    .update({ status })
+    .eq("id", id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
 }
 
-/** TODO(Windsurf): update editable fields + internal notes. */
 export async function updateApplication(
-  _id: string,
-  _changes: Partial<MentorshipApplication>
+  id: string,
+  changes: Partial<MentorshipApplication>
 ): Promise<void> {
-  throw new Error(NOT_CONNECTED);
+  const updateData: Record<string, unknown> = {};
+
+  if (changes.full_name !== undefined) updateData.full_name = changes.full_name;
+  if (changes.email !== undefined) updateData.email = changes.email;
+  if (changes.phone !== undefined) updateData.phone = changes.phone;
+  if (changes.target_exam !== undefined) updateData.target_exam = changes.target_exam;
+  if (changes.preferred_program !== undefined) updateData.preferred_program = changes.preferred_program;
+  if (changes.message !== undefined) updateData.message = changes.message || null;
+  if (changes.status !== undefined) updateData.status = changes.status;
+  if (changes.internal_notes !== undefined) updateData.internal_notes = changes.internal_notes || null;
+
+  const { error } = await supabase
+    .from("joining_form")
+    .update(updateData)
+    .eq("id", id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
 }
 
-/** TODO(Windsurf): delete row. */
-export async function deleteApplication(_id: string): Promise<void> {
-  throw new Error(NOT_CONNECTED);
+export async function deleteApplication(id: string): Promise<void> {
+  const { error } = await supabase
+    .from("joining_form")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
 }
 
-/**
- * TODO(Windsurf): compute from Supabase counts.
- * Returns null so the dashboard shows "--" placeholders.
- */
 export async function fetchDashboardStats(): Promise<DashboardStats | null> {
-  return null;
+  const { data, error } = await supabase
+    .from("joining_form")
+    .select("status");
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const stats: DashboardStats = {
+    total: data.length,
+    new: 0,
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+  };
+
+  for (const row of data) {
+    const status = row.status as ApplicationStatus;
+    if (status === "new") stats.new++;
+    else if (status === "pending") stats.pending++;
+    else if (status === "approved") stats.approved++;
+    else if (status === "rejected") stats.rejected++;
+  }
+
+  return stats;
 }

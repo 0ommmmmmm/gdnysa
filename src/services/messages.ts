@@ -1,12 +1,9 @@
 /**
  * Frontend service layer for contact messages.
- * Placeholder only — Windsurf will connect these to Supabase.
  */
 
+import { supabase } from "@/integrations/supabase/client";
 import type { ContactMessage } from "@/types/admin";
-
-const NOT_CONNECTED =
-  "Backend is not connected yet. Wire this call up to Supabase.";
 
 /** Payload produced by the public Contact form. */
 export interface ContactMessageFormData {
@@ -23,41 +20,69 @@ export interface SubmitResult {
 
 /**
  * Public Contact form submission.
- *
- * TODO(Windsurf): replace the body with the real Supabase implementation, e.g.
- *   const { error } = await supabase.from("contact_messages").insert(data);
- *   if (error) throw new Error(error.message);
- *   return { success: true };
  */
 export async function submitContactMessage(
   data: ContactMessageFormData
 ): Promise<SubmitResult> {
-  // Simulated round-trip so the UI loading state behaves realistically.
-  await new Promise((resolve) => setTimeout(resolve, 600));
+  const { error } = await supabase
+    .from("contact_submissions")
+    .insert({
+      name: data.name,
+      email: data.email,
+      subject: data.subject,
+      message: data.message,
+    });
 
-  if (import.meta.env.DEV) {
-    // eslint-disable-next-line no-console
-    console.info("[submitContactMessage] payload (not persisted):", data);
+  if (error) {
+    throw new Error(error.message);
   }
 
   return { success: true };
 }
 
 
-/** TODO(Windsurf): select from Supabase. */
 export async function fetchMessages(): Promise<ContactMessage[]> {
-  return [];
+  const { data, error } = await supabase
+    .from("contact_submissions")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data.map((row) => ({
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    subject: row.subject,
+    message: row.message,
+    is_read: row.status !== "pending",
+    created_at: row.created_at,
+  }));
 }
 
-/** TODO(Windsurf): update is_read column. */
 export async function setMessageRead(
-  _id: string,
-  _isRead: boolean
+  id: string,
+  isRead: boolean
 ): Promise<void> {
-  throw new Error(NOT_CONNECTED);
+  const { error } = await supabase
+    .from("contact_submissions")
+    .update({ status: isRead ? "read" : "pending" })
+    .eq("id", id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
 }
 
-/** TODO(Windsurf): delete row. */
-export async function deleteMessage(_id: string): Promise<void> {
-  throw new Error(NOT_CONNECTED);
+export async function deleteMessage(id: string): Promise<void> {
+  const { error } = await supabase
+    .from("contact_submissions")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
 }

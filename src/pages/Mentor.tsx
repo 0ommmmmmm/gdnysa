@@ -11,12 +11,6 @@ import { ScrollReveal } from "@/components/animations/ScrollReveal";
 import { ParallaxBackground } from "@/components/animations/ParallaxBackground";
 import mineralsPattern from "@/assets/minerals-pattern.jpg";
 
-const qualifications = [
-  "Qualified geology mentor with strong academic background",
-  "Expertise in Applied Geology and related fields",
-  "Successfully cleared competitive exams like GATE and CSIR-NET",
-  "Years of experience in mentoring geology aspirants",
-];
 
 const philosophyPoints = [
   {
@@ -85,10 +79,11 @@ export default function Mentor() {
                     Mentor Introduction
                   </h2>
                   <p className="text-muted-foreground mb-6 leading-relaxed">
-                    Your mentor at G-Dnyasa brings a wealth of knowledge and experience 
-                    in geology education. With a passion for teaching and a deep understanding 
-                    of competitive examination patterns, the mentor is committed to helping 
-                    each student achieve their academic goals.
+                    With a passion for geology and a track record of success in competitive exams, 
+                    I founded G-Dnyasa to guide students through their preparation journey.
+                    My teaching philosophy is centered on building strong conceptual foundations, 
+                    practicing consistently, and developing effective exam strategies.
+                    I'm here to help you navigate the complexities of these exams and achieve your academic goals
                   </p>
 
                   <h3 className="font-semibold text-foreground mb-4">Qualifications & Experience:</h3>
